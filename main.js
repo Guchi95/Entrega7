@@ -8,7 +8,6 @@ const app = express();
 const { Server } = require('socket.io');
 var fs = require('fs');
 
-
 const PORT = 8080
 app.use(express.json())
 app.use(express.static(__dirname + '/public'));
@@ -41,19 +40,34 @@ io.on('connection', (socket) => {
 //-----------------------------------------------------------------------------------------------------//
 
 
+app.use('/api', router);
+
+
 app.get('/productos', (req, res) => {
-    res.render('listproductos', { layout: 'index', productos: persistance.getProductos() })
+    res.render('./partials/listproductos', { layout: 'index', productos: persistance.getProductos()})
 });
 
 app.get('/', (req, res) => {
-    res.render("AgregarProducto", {
-        productos: persistance.getProductos()
-    });
+    persistance.getProductos().then(result => {
+        res.render("AgregarProducto", {
+            productos: result
+        });
+    })
+    
 })
 
 router.get('/productos', (req, res) => {
     res.send(persistance.getProductos())
 })
+ 
+router.post('/productos', (req, res) => {
+    var productoToAdd = req.body;
+    var id = persistance.addProducto(productoToAdd);
+    productoToAdd.id = id;
+    io.emit('table', productoToAdd);
+    res.send({ id: id })
+
+}) 
 
 router.get('/productos/:id', (req, res) => {
     var productId = req.params.id;
@@ -64,15 +78,6 @@ router.get('/productos/:id', (req, res) => {
         res.status(404);
         res.send({ error: 'producto no encontrado' });
     }
-
-})
-
-router.post('/productos', (req, res) => {
-    var productoToAdd = req.body;
-    var id = persistance.addProducto(productoToAdd);
-    productoToAdd.id = id;
-    io.emit('table', productoToAdd);
-    res.send({ id: id })
 
 })
 
@@ -103,16 +108,18 @@ router.put('/productos/:id', (req, res) => {
     }
 
 })
+//------------------------------CHAT--------------------------------------------------//
+
+const { Sqlite3 } = require('./bd/Sqlite3.js'); 
+const knex = require('knex')(Sqlite3);
 
 router.post('/chat', (req, res) => {
     try {
-        const CreateFiles = fs.createWriteStream('./Chat.txt', {
-            flags: 'a'
-        })
-        CreateFiles.write(JSON.stringify(req.body))
-
-    } catch (err) {
-        console.log("No se pudo guardar el archivo por el motivo " + JSON.stringify(err));
+        knex('messages').insert(req.body)
+        .then(() => console.log('Data Inserted'))
+        .catch((err) => { console.log(err); throw err})
+        } catch (err) {
+        console.log("No se pudo guardar mensaje por el motivo " + JSON.stringify(err));
     }
     res.send()
 
@@ -121,5 +128,5 @@ router.post('/chat', (req, res) => {
 
 
 
-app.use('/api', router);
+
 

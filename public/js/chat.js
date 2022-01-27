@@ -26,13 +26,16 @@ form.addEventListener('submit', function (e) {
 
 socket.on('chat message', function (msg) {
   var item = document.createElement('li')
+
   var emailSpan = document.createElement('span')
   emailSpan.style.color = 'blue'
   emailSpan.style.fontWeight = '700'
   emailSpan.innerHTML = msg.email + ' ';
+
   var dateSpan = document.createElement('span')
   dateSpan.style.color = 'brown'
   dateSpan.innerHTML = '[' + msg.date + ']: ';
+
   var msgSpan = document.createElement('span')
   msgSpan.style.color = 'green'
   msgSpan.style.fontStyle = 'italic'
@@ -61,4 +64,3 @@ function saveToFile(obj) {
     console.log("Request complete! response:", res);
   });
 }
-

@@ -1,3 +1,7 @@
+const { MariaDB } = require('./bd/MariaDB.js') 
+const knex = require('knex')(MariaDB);
+
+
 class Persistance {
     constructor() {
         this.productos = [];
@@ -6,21 +10,20 @@ class Persistance {
 
 
     addProducto(producto) {
-        this.autoIncrement++
-        producto.id = this.autoIncrement;
-        this.productos.push(producto);
-        return this.autoIncrement;
-    }
+        knex('products').insert(producto)
+        .then(() => console.log('Data Inserted'))
+        .catch((err) => { console.log(err); throw err})
+        };
 
     getProducto(id) {
-
-        for (let i = 0; i < this.productos.length; i++) {
-            const producto = this.productos[i];
-            if (producto.id == id) {
-                return producto;
-            }
-        }
-        return null;
+        var dataArr =[];
+        return knex('products').select('*').where('id', id)
+           .then(function(result) {
+               result.forEach(function(value) {
+                  dataArr.push(value)
+               });
+               return JSON.parse(JSON.stringify(dataArr));
+           });
     }
 
     deleteProducto(id) {
@@ -40,8 +43,16 @@ class Persistance {
     }
 
     getProductos() {
-        return this.productos;
-    }
+        var dataArr =[];
+        return knex('products').select('*')
+           .then(function(result) {
+               result.forEach(function(value) {
+                  dataArr.push(value)
+               });
+               return JSON.parse(JSON.stringify(dataArr));
+           });
+    };
+    
 
     productoExiste(id) {
         var producto = this.getProducto(id)

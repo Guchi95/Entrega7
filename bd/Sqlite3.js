@@ -1,12 +1,11 @@
-const knex = require('knex')({
+var Sqlite3 = {
     client: 'sqlite3',
     connection: {
-        filename: ".db/Ecommerce"
+        filename: './Ecommerce.sqlite'
     },
     useNullAsDefault: true
-});
+}    
 
 module.exports = {
-    knex
+    Sqlite3
 }
-
